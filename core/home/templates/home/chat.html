@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF AI Assistant - Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        
+        .hero-description {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .features-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+
+        #home {
+   background: rgba(255, 255, 255, 0.15);
+   backdrop-filter: blur(10px);
+   border: 1px solid rgba(255, 255, 255, 0.3);
+   color: white;
+   padding: 0.8rem 2rem;
+   border-radius: 25px;
+   font-size: 1rem;
+   font-weight: 500;
+   cursor: pointer;
+   margin-top: 2rem;
+   transition: all 0.3s ease;
+   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#home:hover {
+   background: rgba(255, 255, 255, 0.25);
+   transform: translateY(-2px);
+   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+#home:active {
+   transform: translateY(0);
+}
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .chatbot-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .chatbot-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+        
+        /* Header */
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .chat-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .chat-icon {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            padding: 2rem;
+            height: 400px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, rgba(102, 126, 234, 0.05), rgba(255,255,255,0.8));
+        }
+        
+        .msg {
+            margin-bottom: 1.5rem;
+            display: flex;
+        }
+        
+        .left-msg {
+            justify-content: flex-start;
+        }
+        
+        .right-msg {
+            justify-content: flex-end;
+        }
+        
+        .msg-bubble {
+            max-width: 70%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .left-msg .msg-bubble {
+            background: rgba(255,255,255,0.9);
+            color: #2d3748;
+            border-bottom-left-radius: 5px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .right-msg .msg-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .msg-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .msg-info-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .msg-info-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .msg-text {
+            line-height: 1.5;
+        }
+        
+        /* Input Area */
+        .input-area {
+            padding: 1.5rem 2rem;
+            background: rgba(255,255,255,0.9);
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        #textInput {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 25px;
+            background: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        #textInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        #textInput::placeholder {
+            color: #a0aec0;
+        }
+        
+        button[type="submit"] {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+        
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+        
+        .send-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .chatbot-container {
+                margin: 1rem;
+            }
+            
+            .features-row {
+                gap: 1rem;
+            }
+            
+            .feature-card {
+                min-width: 100px;
+                padding: 0.8rem 1rem;
+            }
+            
+            .input-area {
+                padding: 1rem;
+            }
+            
+            .chat-area {
+                padding: 1rem;
+                height: 300px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .feature-card {
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Custom scrollbar */
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-area::-webkit-scrollbar-track {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+        
+        .chat-area::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">🤖 PDF AI Assistant</h1>
+        <p class="hero-subtitle">Intelligent Document Chat Interface</p>
+        <p class="hero-description">Get instant AI-powered answers from your documents</p>
+        
+
+    </div>
+
+    <!-- Chatbot Container -->
+    <div class="chatbot-container">
+        <!-- Header -->
+        <header class="chat-header">
+            <h1>
+                <svg class="chat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                PDF AI Assistant
+                <svg class="chat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+            </h1>
+        </header>
+        
+        <!-- Chat Area -->
+        <main class="chat-area">
+
+        </main>
+        
+        <!-- Input Area -->
+        <form class="input-area">
+            <input type="text" id="textInput" placeholder="Ask me anything about your document...">
+            <button type="submit">
+                <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <button id = "home"> Go Back </button>
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        const homeBtn = document.getElementById('home');
+
+        homeBtn.addEventListener('click', function () {
+        window.location.href = "{% url 'process_file' %}";
+    });
+        const msgerForm = document.querySelector(".input-area");
+        const msgerInput = document.querySelector("#textInput");
+        const msgerChat = document.querySelector(".chat-area");
+
+        const BOT_NAME = "AI Assistant";
+        const PERSON_NAME = "You";
+
+        msgerForm.addEventListener("submit", event => {
+            event.preventDefault();
+
+            const msgText = msgerInput.value;
+            if (!msgText) return;
+
+            appendMessage(PERSON_NAME, "right", msgText);
+            msgerInput.value = "";
+            const csrftoken = '{{ csrf_token }}';
+
+            const requestObj = new XMLHttpRequest();
+            requestObj.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    const botResponse = this.responseText;
+                    appendMessage(BOT_NAME, "left", botResponse);
+                }
+            };
+
+            requestObj.open("POST", '/chat/');
+            requestObj.setRequestHeader("X-CSRFToken", csrftoken);
+
+            const formdata = new FormData();
+            formdata.append('query', msgText);
+            requestObj.send(formdata);
+        });
+
+        function appendMessage(name, side, text) {
+            const msgBubbleClass = side === "right" 
+                ? "msg-bubble" 
+                : "msg-bubble";
+            
+            let msgHTML = `
+            <div class="msg ${side}-msg">
+                <div class="${msgBubbleClass}">
+                    <div class="msg-info">
+                        <div class="msg-info-name">${name}</div>
+                        <div class="msg-info-time">${formatDate(new Date())}</div>
+                    </div>
+                    <div class="msg-text">${text}</div>
+                </div>
+            </div>`;
+
+            msgerChat.insertAdjacentHTML("beforeend", msgHTML);
+            msgerChat.scrollTop = msgerChat.scrollHeight;
+        }
+
+        function botResponse(rawText) {
+            appendMessage(BOT_NAME, "left", rawText);
+        }
+
+        function formatDate(date) {
+            const h = "0" + date.getHours();
+            const m = "0" + date.getMinutes();
+            return `${h.slice(-2)}:${m.slice(-2)}`;
+        }
+    </script>
+</body>
+</html>

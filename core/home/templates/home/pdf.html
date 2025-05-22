@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PDF AI Assistant - PDF Viewer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .hero-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hero-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+        
+        .pdf-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        
+        .pdf-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+        
+        .pdf-controls {
+            background: linear-gradient(135deg, #2d3748, #1a202c);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .page-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        #pdf-render {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: white;
+        }
+        
+        .error-message {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+        
+        .action-buttons {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 140px;
+            justify-content: center;
+        }
+        
+        .btn-crop-start {
+            background: linear-gradient(135deg, #f6ad55, #ed8936);
+            color: white;
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4);
+        }
+        
+        .btn-crop-save {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+        
+        .btn-cancel {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+        
+        #chat_bot {
+            background: linear-gradient(135deg, #9f7aea, #805ad5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(159, 122, 234, 0.4);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-crop-start:hover {
+            box-shadow: 0 8px 25px rgba(237, 137, 54, 0.6);
+        }
+        
+        .btn-crop-save:hover {
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
+        }
+        
+        .btn-cancel:hover {
+            box-shadow: 0 8px 25px rgba(245, 101, 101, 0.6);
+        }
+        
+        #chat_bot:hover {
+            box-shadow: 0 8px 25px rgba(159, 122, 234, 0.6);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .pdf-controls {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                gap: 0.75rem;
+            }
+            
+            .action-btn {
+                min-width: 120px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Animation */
+        .pdf-container {
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .action-buttons {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .hidden {
+    display: none ;
+}
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <header class="hero-header">
+            <div class="hero-icon">📚</div>
+            <h1 class="hero-title">PDF AI Assistant</h1>
+            <p class="hero-subtitle">Interactive PDF Study Assistant</p>
+        </header>
+        
+        <div class="pdf-container">
+            <!-- PDF Controls -->
+            <div class="pdf-controls">
+                <button class="control-btn" id="prev-page">
+                    <i class="fas fa-arrow-circle-left"></i> Prev Page
+                </button>
+                
+                <div class="page-indicator">
+                    Page <span id="page-num" class="font-bold">0</span> of <span id="page-count" class="font-bold">0</span>
+                </div>
+                
+                <button class="control-btn" id="next-page">
+                    Next Page <i class="fas fa-arrow-circle-right"></i>
+                </button>
+            </div>
+            
+            <!-- PDF Renderer -->
+            <canvas id="pdf-render" class="w-full"></canvas>
+        </div>
+        
+        <!-- Error message container (hidden by default) -->
+        <div id="error-container" class="error-message hidden">
+            <p id="error-message">An error occurred while loading the PDF.</p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="start-crop" class="action-btn btn-crop-start">
+                <i class="fas fa-crop"></i>
+                Start Cropping
+            </button>
+            <button id="crop-btn" class="action-btn btn-crop-save hidden">
+                <i class="fas fa-check"></i>
+                Crop & Save
+            </button>
+            <button id="cancel-crop" class="action-btn btn-cancel hidden">
+                <i class="fas fa-times"></i>
+                Cancel Crop
+            </button>
+            <button id="chat_bot" class="action-btn btn-cancel hidden">
+    <i class="fas fa-times"></i>
+    Chat-Bot Go to Chat
+    </button>
+
+        </div>
+    </div>
+    
+
+     {{ file_url|json_script:"url" }} 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"> </script>
+    <script>
+
+        // PDF.js setup
+   
+        const url = JSON.parse(document.getElementById('url').textContent);  // Get the URL from the JSON script tag
+  
+         // Replace with your PDF file path
+        
+        console.log('PDF URL:', url);
+        // Loaded via PDF.js CDN
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+        
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.getElementById('pdf-render'),
+            ctx = canvas.getContext('2d');
+        
+        // Render the page
+        function renderPage(num) {
+            pageRendering = true;
+            
+            // Get page
+            pdfDoc.getPage(num).then(function(page) {
+                // Set scale
+                const viewport = page.getViewport({ scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                // Render PDF page
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                const renderTask = page.render(renderContext);
+                
+                // Wait for rendering to finish
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    
+                    if (pageNumPending !== null) {
+                        // New page rendering is pending
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            }).catch(function(error) {
+                // Display error
+                document.getElementById('error-container').classList.remove('hidden');
+                document.getElementById('error-message').textContent = 'Failed to render page: ' + error.message;
+            });
+            
+            // Update page counters
+            document.getElementById('page-num').textContent = num;
+        }
+        
+        // Go to previous page
+        function prevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+        
+        // Go to next page
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+        
+        // Queue rendering of the page
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+        
+        // Initialize PDF
+        pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+            pdfDoc = pdfDoc_;
+            document.getElementById('page-count').textContent = pdfDoc.numPages;
+            
+            // Initial render
+            renderPage(pageNum);
+        }).catch(function(error) {
+            // Display error
+            document.getElementById('error-container').classList.remove('hidden');
+            document.getElementById('error-message').textContent = 'Failed to load PDF: ' + error.message;
+        });
+        
+        // Button events
+        document.getElementById('prev-page').addEventListener('click', prevPage);
+        document.getElementById('next-page').addEventListener('click', nextPage);
+    
+        let cropper = null;
+
+        const startCropBtn = document.getElementById('start-crop');
+        const cropBtn = document.getElementById('crop-btn');
+        const cancelCropBtn = document.getElementById('cancel-crop');
+        const croppedImage = document.getElementById('cropped-image');
+        const downloadLink = document.getElementById('download-link');
+        const chatBotBtn = document.getElementById('chat_bot');
+
+        chatBotBtn.addEventListener('click', function () {
+        window.location.href = "{% url 'chat_bot' %}";
+    });
+
+        chatBotBtn.classList.add('hidden');
+        
+        
+        // Function to start cropping
+        startCropBtn.addEventListener('click', () => {
+            if (cropper) cropper.destroy();
+
+            cropper = new Cropper(canvas, {
+                viewMode: 1,
+                autoCropArea: 0.6,
+                movable: true,
+                scalable: true,
+                zoomable: true,
+                background: false,
+            });
+
+            cropBtn.classList.remove('hidden');
+            cancelCropBtn.classList.remove('hidden');
+            startCropBtn.classList.add('hidden');
+        });
+
+        // Function to cancel cropping
+        cancelCropBtn.addEventListener('click', () => {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            cropBtn.classList.add('hidden');
+            cancelCropBtn.classList.add('hidden');
+            startCropBtn.classList.remove('hidden');
+        });
+
+        // Crop and save the image
+        cropBtn.addEventListener('click', () => {
+            if (!cropper) return;
+
+            // Get the cropped canvas
+            const croppedCanvas = cropper.getCroppedCanvas();
+            const croppedDataURL = croppedCanvas.toDataURL('image/png');  // No preview shown
+
+            // Send the base64 image to Flask
+            var csrftoken = '{{ csrf_token }}' ;
+             
+                const requestObj = new XMLHttpRequest()
+                requestObj.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        console.log(this.responseText)
+                    }
+                }
+
+                requestObj.open("POST", '/pdf/')
+                requestObj.setRequestHeader("X-CSRFToken", csrftoken)
+
+                const formdata = new FormData()
+                formdata.append('base64', croppedDataURL) 
+                requestObj.send(formdata) ;
+                
+            
+
+            // Cleanup after sending the image
+            cropper.destroy();
+            cropper = null;
+            cropBtn.classList.add('hidden');
+            cancelCropBtn.classList.add('hidden');
+            startCropBtn.classList.add('hidden');
+            chatBotBtn.classList.remove('hidden');
+            console.log('Cropped image sent to server:', croppedDataURL);
+          
+        });
+    </script>
+</body>
+</html>
